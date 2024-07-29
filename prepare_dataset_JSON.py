@@ -35,20 +35,25 @@ def tokenize_function(examples):
     with tokenizer.as_target_tokenizer():
         labels = tokenizer(examples["output_text"], padding="max_length", max_length=1024)
     model_inputs['labels'] = labels['input_ids']
+    return model_inputs
 
 
 if __name__ == "__main__":
     from datasets import Dataset
     # JSON Path
-    json_path = "/Users/efecelik/Desktop/3274_tree3_fine_tune.json"
+    json_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/3274_tree3_fine_tune.json"
     # Output text
-    output_text_path = "/Users/efecelik/Desktop/3274_tree3_fine_tune.txt"
+    output_text_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/3274_tree3_fine_tune.txt"
 
     dataset= prepare_dataset(json_path, output_text_path)
     dataset= Dataset.from_pandas(pd.DataFrame(dataset))
     tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
-    tokenized_dataset.save_to_disk("/Users/efecelik/Desktop/tokenized_data")
+    #print
+    print(f"Dataset: {dataset}")
+    print(f"Tokenized dataset: {tokenized_dataset}")
+
+    tokenized_dataset.save_to_disk("/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/cokcok")
 
 
 
