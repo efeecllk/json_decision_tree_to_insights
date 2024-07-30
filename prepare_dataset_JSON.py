@@ -1,65 +1,60 @@
-import json
 import pandas as pd
 from transformers import AutoTokenizer
+from datasets import Dataset
 
 # Load the tokenizer
-tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
-
-#json_file_loc= '/Users/efecelik/Desktop/3274_tree3_fine_tune.json'
-#Load JSON
-def load_json_data(json_path):
-    with open(json_path, 'r') as f:
-        data = json.load(f)
-    return data
-
-def load_output_text(output_text_path):
-    with open(output_text_path, 'r') as f:
-        output_text = f.read()
-    return output_text
+tokenizer = AutoTokenizer.from_pretrained("google/mt5-base", legacy=False)
 
 
-#load_json_data(json_file_loc)
-#print(load_json_data(json_file_loc))
+# Function to load CSV data
+def load_csv_data(csv_path):
+    df = pd.read_csv(csv_path)
+    return df
 
-def prepare_dataset(json_path, output_text_path):
-    data= load_json_data(json_path)
-    output_text= load_output_text(output_text_path)
-    dataset= []
-    for item in data:
-        input_text = json.dumps(item)
+
+# Function to prepare the dataset
+def prepare_dataset(input_csv_path, output_csv_path):
+    input_data = load_csv_data(input_csv_path)
+    output_data = load_csv_data(output_csv_path)
+
+    # Debug: Print row counts
+    print(f"Number of rows in input CSV: {len(input_data)}")
+    print(f"Number of rows in output CSV: {len(output_data)}")
+
+    dataset = []
+    min_length = min(len(input_data), len(output_data))
+
+    for i in range(min_length):
+        input_text = input_data.iloc[i].to_json()
+        output_text = output_data.iloc[i]['output_text']
         dataset.append({"input_text": input_text, "output_text": output_text})
+
     return dataset
 
+
+# Function to tokenize the data
 def tokenize_function(examples):
     model_inputs = tokenizer(examples["input_text"], truncation=True, padding="max_length", max_length=1024)
     with tokenizer.as_target_tokenizer():
-        labels = tokenizer(examples["output_text"], padding="max_length", max_length=1024)
+        labels = tokenizer(examples["output_text"], truncation=True, padding="max_length", max_length=1024)
     model_inputs['labels'] = labels['input_ids']
     return model_inputs
 
 
 if __name__ == "__main__":
-    from datasets import Dataset
-    # JSON Path
-    json_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/3274_tree3_fine_tune.json"
-    # Output text
-    output_text_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/3274_tree3_fine_tune.txt"
+    # Input CSV Path
+    input_csv_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/decision_tree.csv"
+    # Output CSV Path
+    output_csv_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/split_output.csv"
 
-    dataset= prepare_dataset(json_path, output_text_path)
-    dataset= Dataset.from_pandas(pd.DataFrame(dataset))
+    # Prepare and tokenize the dataset
+    dataset = prepare_dataset(input_csv_path, output_csv_path)
+    dataset = Dataset.from_pandas(pd.DataFrame(dataset))
     tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
-    #print
+    # Print the dataset to verify
     print(f"Dataset: {dataset}")
     print(f"Tokenized dataset: {tokenized_dataset}")
 
+    # Save the tokenized dataset
     tokenized_dataset.save_to_disk("/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/cokcok")
-
-
-
-
-
-
-
-
-

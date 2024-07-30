@@ -1,23 +1,32 @@
-from transformers import AutoModelForSeq2SeqLM, Trainer, TrainingArguments
+from transformers import AutoModelForSeq2SeqLM, Trainer, TrainingArguments, AutoTokenizer
 from datasets import load_from_disk
-from prepare_dataset_JSON import tokenizer
 
+# Load the tokenizer and model
+tokenizer = AutoTokenizer.from_pretrained("google/mt5-base", legacy=False)
+model = AutoModelForSeq2SeqLM.from_pretrained("google/mt5-base")
 
-
+# Load the tokenized dataset
 tokenized_dataset = load_from_disk("/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/cokcok")
 
+# Verify tokenized dataset
 print(f"Tokenized dataset: {tokenized_dataset}")
 
+# Use the entire dataset for training if it's too small
+train_dataset = tokenized_dataset
+test_dataset = tokenized_dataset
 
-dataset = tokenized_dataset.train_test_split(test_size=0.2)
-train_dataset= dataset["train"]
-test_dataset= dataset["test"]
+# Verify train and test datasets
+print(f"Train dataset: {train_dataset}")
+print(f"Test dataset: {test_dataset}")
 
-model= AutoModelForSeq2SeqLM.from_pretrained("t5-small")
+# Print content of the dataset
+print("Sample from train dataset:")
+print(train_dataset[0])
 
+# Define training arguments
 training_args = TrainingArguments(
     output_dir="./results",  # Directory to save training results and checkpoints
-    evaluation_strategy="epoch",  # Corrected the typo here
+    evaluation_strategy="epoch",
     learning_rate=2e-5,
     per_device_train_batch_size=4,
     per_device_eval_batch_size=4,
@@ -34,12 +43,9 @@ trainer = Trainer(
     tokenizer=tokenizer,
 )
 
-
 # Train the model
 trainer.train()
 
-
+# Save the model
 model.save_pretrained("/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/models/fine_tuned_model")
 tokenizer.save_pretrained("/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/models/fine_tuned_model")
-
-
