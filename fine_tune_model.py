@@ -2,8 +2,8 @@ from transformers import AutoModelForSeq2SeqLM, Trainer, TrainingArguments, Auto
 from datasets import load_from_disk
 
 # Load the tokenizer and model
-tokenizer = AutoTokenizer.from_pretrained("google/mt5-base", legacy=False)
-model = AutoModelForSeq2SeqLM.from_pretrained("google/mt5-base")
+tokenizer = AutoTokenizer.from_pretrained("t5-small")
+model = AutoModelForSeq2SeqLM.from_pretrained("t5-small")
 
 # Load the tokenized dataset
 tokenized_dataset = load_from_disk("/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/cokcok")
@@ -28,10 +28,11 @@ training_args = TrainingArguments(
     output_dir="./results",  # Directory to save training results and checkpoints
     evaluation_strategy="epoch",
     learning_rate=2e-5,
-    per_device_train_batch_size=4,
+    per_device_train_batch_size=4,  # Use small batch size to prevent memory issues
     per_device_eval_batch_size=4,
     num_train_epochs=3,
     weight_decay=0.01,
+    no_cuda=True,  # Ensure training is done on CPU
 )
 
 # Initialize the Trainer

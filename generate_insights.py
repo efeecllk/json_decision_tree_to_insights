@@ -1,23 +1,29 @@
 import json
-from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
-
-# Load the fine-tuned model
-model_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/models/fine_tuned_model"
-tokenizer = AutoTokenizer.from_pretrained(model_path)
-model = AutoModelForSeq2SeqLM.from_pretrained(model_path)
-
-text_generator = pipeline("text2text-generation", model=model, tokenizer=tokenizer)
 
 
+# Function to parse the JSON tree and generate insights
+def parse_tree(node, depth=0):
+    insights = ""
+    indent = "  " * depth  # Indentation for better readability
+    if "name" in node:
+        insights += f"{indent}- {node['name']}\n"
+    if "children" in node:
+        for child in node["children"]:
+            insights += parse_tree(child, depth + 1)
+    return insights
+
+
+# Function to generate insights from the JSON input
 def generate_insights(json_input):
-    input_text = json.dumps(json_input)
-    insights = text_generator(input_text, max_length=1024, truncation=True)
-    return insights[0]['generated_text']
+    insights = "Summary:\n"
+    for item in json_input:
+        insights += parse_tree(item)
+    return insights
 
 
 if __name__ == "__main__":
     # Load your new JSON input
-    json_input_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/new_input.json"
+    json_input_path = "/Users/efecelik/PycharmProjects/json_decision_tree_to_insights/data/xxx.json.json"
     with open(json_input_path, 'r') as f:
         json_input = json.load(f)
 
