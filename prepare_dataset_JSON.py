@@ -3,7 +3,7 @@ from transformers import AutoTokenizer
 from datasets import Dataset
 
 # Load the tokenizer
-tokenizer = AutoTokenizer.from_pretrained("google/mt5-base", legacy=False)
+tokenizer = AutoTokenizer.from_pretrained("t5-small")
 
 
 # Function to load CSV data
@@ -34,10 +34,10 @@ def prepare_dataset(input_csv_path, output_csv_path):
 
 # Function to tokenize the data
 def tokenize_function(examples):
-    model_inputs = tokenizer(examples["input_text"], truncation=True, padding="max_length", max_length=1024)
+    model_inputs = tokenizer(examples["input_text"], truncation=True, padding="max_length", max_length=512)
     with tokenizer.as_target_tokenizer():
-        labels = tokenizer(examples["output_text"], truncation=True, padding="max_length", max_length=1024)
-    model_inputs['labels'] = labels['input_ids']
+        labels = tokenizer(examples["output_text"], truncation=True, padding="max_length", max_length=512)
+    model_inputs["labels"] = labels["input_ids"]
     return model_inputs
 
 
